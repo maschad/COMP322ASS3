@@ -67,7 +67,7 @@ cf_int PeriodicCF::next() const {
 	}
 	else
 	{
-		return periodicPart.at((i- fixedPart.size()) % periodicPart.size());
+		return periodicPart.at((i-fixedPart.size())%periodicPart.size());
 	}
 
 }
@@ -100,7 +100,7 @@ cf_int MagicBoxCF::next() const {
 	while( ((mbnums[2] == 0 || mbnums[3] == 0) && !(mbnums[2] == 0 && mbnums[3] == 0)) ||
             (mbnums[2] != 0 && mbnums[3] != 0 && mbnums[0] / mbnums[2] != mbnums[1] / mbnums[3]) ) {
 		// while the indeces are not yet ready to spit q
-		if(boxedFraction->hasNoMore)
+		if(boxedFraction->hasNoMore())
 		{
             // no more integers to spit from cf
 			mbnums[0] = mbnums[1];
@@ -174,7 +174,7 @@ ostream &operator<<(ostream& outs, const ContinuedFraction &cf) {
 		}
 		else
 		{
-			cout << ((first) ? "; " : ", ");
+			cout << ((first) ? "; " : ",");
 		}
 		first = false;
 	}
@@ -186,31 +186,51 @@ ostream &operator<<(ostream& outs, const ContinuedFraction &cf) {
 /* QUESTION 6 */
 
 float Flower::getAngle(unsigned int k) const {
-    //TODO
+    Fraction fr = theta->getApproximation(7);
+    double fractpart = ((k*fr.numerator)%fr.denominator/(double)fr.denominator);
+    return (2 * pie * fractpart);
 }
 
 Flower::Flower(const ContinuedFraction *f, unsigned int apxLengthParam) : apx_length(apxLengthParam)
 {
-
+	theta = f;
 }
 
 Seed Flower::getSeed(unsigned int k) const {
-    //TODO
+	Seed s;
+    // we follow the formulas in the assignment's document
+    float angle = getAngle(k);
+    s.x = sqrt(k / (pie * 1.0)) * cos(angle);
+    s.y = sqrt(k / (pie * 1.0)) * sin(angle);
+    return s;
 }
 
 vector<Seed> Flower::getSeeds(unsigned int k) const {
-    //TODO
+	vector<Seed> flower;
+	flower.push_back(getSeed((int) flower.size()));
+	return flower;
 }
 
 
 Flower::~Flower() {
-    //TODO
+
 }
 
 /* QUESTION 7*/
 
-void Flower::writeMVGPicture(ostream &out, unsigned int k, unsigned int scale_x, unsigned int scale_y) const {
-    //TODO
+void Flower::writeMVGPicture(ostream &out, unsigned int N, unsigned int H, unsigned int W) const {
+	vector<Seed> seeds = getSeeds(N);
+	int C_x,C_y,B_x,B_y,i = 0;
+
+	for(Seed seed : seeds)
+	{
+		C_x = (H/2) + (seed.x *((H - 200)/2)*sqrt(pie/N));
+		C_y = (W/2) + (seed.y *((W - 200)/2)*sqrt(pie/N));
+		B_x = C_x + sqrt(i/N)*(min(W,H)/100);
+		B_y = C_y;
+		out << "fill blue circle "<<C_x <<","<< C_y<<" "<< B_x <<","<< B_y << endl;
+	}
+
 }
 
 
