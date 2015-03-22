@@ -5,30 +5,30 @@
 
  /* 0-credit */
 Fraction ContinuedFraction::getApproximation(unsigned int k) const {
+	std::vector<cf_int> cfs;
 	cf_int temp;
     Fraction toRet;
-	unsigned int i = k;
+    int i;
+
+	toRet.numerator = 1;
+	toRet.denominator  = 0;
+
+	resetIterator();
+	i = 0;
+	while(!hasNoMore() && i < k)
+	{
+		cfs.push_back(next());
+		i++;
+	}
 
 
-	while( i > 1)
+	while(i > 0)
     {
-    	if(i == k)
-    	{
-    		toRet.numerator = 1;
-    		toRet.denominator = next();
-    		i--;
-    	}
-    	else
-    	{
-    		temp = next();
-    		toRet.numerator = toRet.denominator;
-    		toRet.denominator = toRet.denominator*next() + temp;
-    		i--;
-    	}
-    	if(i == 1)
-    	{
-    		toRet.denominator = toRet.denominator*next() + temp;
-    	}
+		temp = toRet.numerator;
+		toRet.numerator =  cfs.at(i-1)*toRet.numerator + toRet.denominator;
+		toRet.denominator = temp;
+		i--;
+
     }
 
     return toRet;
@@ -97,8 +97,8 @@ MagicBoxCF::MagicBoxCF(ContinuedFraction const* f, unsigned long aParam, unsigne
 
 cf_int MagicBoxCF::next() const {
 
-	while( ((mbnums[2] == 0 || mbnums[3] == 0) && !(mbnums[2] == 0 && mbnums[3] == 0)) ||
-            (mbnums[2] != 0 && mbnums[3] != 0 && mbnums[0] / mbnums[2] != mbnums[1] / mbnums[3]) ) {
+	while( ((mbnums[2] == 0 || mbnums[3] == 0) && !(mbnums[2] == 0 && mbnums[3] == 0)) || (mbnums[2] != 0 && mbnums[3] != 0 && mbnums[0] / mbnums[2] != mbnums[1] / mbnums[3]) )
+	{
 		// while the indeces are not yet ready to spit q
 		if(boxedFraction->hasNoMore())
 		{
@@ -108,7 +108,7 @@ cf_int MagicBoxCF::next() const {
             continue;
 		}
 		//read p
-			cf_int p = next();
+			cf_int p = boxedFraction->next();
 		//change box accordingly
 		int i = mbnums[1],
             j = mbnums[0] + mbnums[1] * p,
@@ -174,7 +174,8 @@ ostream &operator<<(ostream& outs, const ContinuedFraction &cf) {
 		}
 		else
 		{
-			cout << ((first) ? "; " : ",");
+			if(!cf.hasNoMore())
+				cout << ((first) ? "; " : ",");
 		}
 		first = false;
 	}
@@ -186,7 +187,7 @@ ostream &operator<<(ostream& outs, const ContinuedFraction &cf) {
 /* QUESTION 6 */
 
 float Flower::getAngle(unsigned int k) const {
-    Fraction fr = theta->getApproximation(7);
+    Fraction fr = theta->getApproximation(apx_length);
     double fractpart = ((k*fr.numerator)%fr.denominator/(double)fr.denominator);
     return (2 * pie * fractpart);
 }
@@ -207,7 +208,9 @@ Seed Flower::getSeed(unsigned int k) const {
 
 vector<Seed> Flower::getSeeds(unsigned int k) const {
 	vector<Seed> flower;
-	flower.push_back(getSeed((int) flower.size()));
+	unsigned int i;
+	for(i = 0; i < k; i++)
+		flower.push_back(getSeed(flower.size()));
 	return flower;
 }
 
@@ -228,6 +231,8 @@ void Flower::writeMVGPicture(ostream &out, unsigned int N, unsigned int H, unsig
 		C_y = (W/2) + (seed.y *((W - 200)/2)*sqrt(pie/N));
 		B_x = C_x + sqrt(i/N)*(min(W,H)/100);
 		B_y = C_y;
+		if(B_x == C_x)
+			B_x++;
 		out << "fill blue circle "<<C_x <<","<< C_y<<" "<< B_x <<","<< B_y << endl;
 	}
 
